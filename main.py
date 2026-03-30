@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import concurrent.futures
 import csv
 import io
 import json
@@ -37,6 +38,15 @@ IRAN_NORTH, IRAN_SOUTH = 39.8, 25.0
 IRAN_WEST, IRAN_EAST = 44.0, 63.5
 SATELLITE_SOURCE_URL = "https://www.accuweather.com/en/ir/national/satellite"
 SATELLITE_OUTPUT_DIR = Path("data/satellite")
+
+GIBS_LAYER = "VIIRS_SNPP_CorrectedReflectance_TrueColor"
+GIBS_TILE_MATRIX_SET = "250m"
+GIBS_ZOOM = 5
+GIBS_TILE_SIZE = 512
+GIBS_TILE_DEG = 360 / 40  # 9° per tile at zoom 5 (40 cols × 20 rows)
+GIBS_ROW_RANGE = range(5, 8)   # rows 5,6,7
+GIBS_COL_RANGE = range(24, 28) # cols 24,25,26,27
+GIBS_OUTPUT_DIR = Path("data/satellite/nasa")
 
 HEBREW_LABEL_MAP: dict[str, str] = {
     'מכ"ם': "Radar",
@@ -154,43 +164,46 @@ def locate_visual(page: Page, title: str, wait_selector: str = "svg") -> Locator
     return visual
 
 
+_LINE_CHART_JS = """(node) => {
+    const parseTr = (val) => {
+        const m = /translate\\(([-0-9.]+),?\\s*([-0-9.]+)?/.exec(val || "");
+        return m ? [parseFloat(m[1]), parseFloat(m[2] || 0)] : null;
+    };
+
+    const ticks = [...node.querySelectorAll(".x.axis .tick")].map((t) => {
+        const titleEl = t.querySelector("title");
+        const textEl = t.querySelector("text");
+        const pos = parseTr(t.getAttribute("transform"));
+        return {
+            date: (titleEl?.textContent || textEl?.textContent || "").trim(),
+            x: pos?.[0],
+        };
+    }).filter((t) => t.date && t.x !== null);
+
+    const legends = [...node.querySelectorAll(".legend-item")].map((l) =>
+        l.getAttribute("aria-label") || l.textContent?.trim() || ""
+    ).filter(Boolean);
+
+    const lines = [...node.querySelectorAll("path.line")].map((l) =>
+        l.getAttribute("d") || ""
+    );
+
+    const labels = [...node.querySelectorAll("g.label-container")].map((g) => {
+        const pos = parseTr(g.getAttribute("transform"));
+        const txt = g.querySelector("text.label")?.textContent?.trim() || "";
+        return { x: pos?.[0], y: pos?.[1], val: parseInt(txt) || 0 };
+    }).filter((l) => l.x !== null && l.val > 0);
+
+    return { ticks, legends, lines, labels };
+}"""
+
+
+def extract_line_chart_raw(visual: Locator) -> dict[str, Any]:
+    return visual.evaluate(_LINE_CHART_JS)
+
+
 def extract_line_chart_series(visual: Locator) -> dict[str, dict[str, int]]:
-    raw = visual.evaluate(
-        """(node) => {
-            const parseTr = (val) => {
-                const m = /translate\\(([-0-9.]+),?\\s*([-0-9.]+)?/.exec(val || "");
-                return m ? [parseFloat(m[1]), parseFloat(m[2] || 0)] : null;
-            };
-
-            const ticks = [...node.querySelectorAll(".x.axis .tick")].map((t) => {
-                const titleEl = t.querySelector("title");
-                const textEl = t.querySelector("text");
-                const pos = parseTr(t.getAttribute("transform"));
-                return {
-                    date: (titleEl?.textContent || textEl?.textContent || "").trim(),
-                    x: pos?.[0],
-                };
-            }).filter((t) => t.date && t.x !== null);
-
-            const legends = [...node.querySelectorAll(".legend-item")].map((l) =>
-                l.getAttribute("aria-label") || l.textContent?.trim() || ""
-            ).filter(Boolean);
-
-            const lines = [...node.querySelectorAll("path.line")].map((l) =>
-                l.getAttribute("d") || ""
-            );
-
-            const labels = [...node.querySelectorAll("g.label-container")].map((g) => {
-                const pos = parseTr(g.getAttribute("transform"));
-                const txt = g.querySelector("text.label")?.textContent?.trim() || "";
-                return { x: pos?.[0], y: pos?.[1], val: parseInt(txt) || 0 };
-            }).filter((l) => l.x !== null && l.val > 0);
-
-            return { ticks, legends, lines, labels };
-        }"""
-    )
-
-    return _parse_line_chart_payload(raw)
+    return _parse_line_chart_payload(extract_line_chart_raw(visual))
 
 
 def _parse_line_chart_payload(
@@ -597,12 +610,91 @@ def upsert_snapshot_rows(
         writer.writerows(sorted_rows)
 
 
-def scrape_barrages_to_israel() -> list[ScrapedRow]:
-    series_by_name = scrape_visual_payload(
-        BARRAGE_VISUAL_TITLE, extract_line_chart_series,
-        wait_selector="path.line",
+def _merge_series(
+    target: dict[str, dict[str, int]], source: dict[str, dict[str, int]]
+) -> None:
+    for name, values in source.items():
+        if name not in target:
+            target[name] = {}
+        target[name].update(values)
+
+
+def _count_all_dates(series: dict[str, dict[str, int]]) -> int:
+    return len({d for vals in series.values() for d in vals})
+
+
+def _merge_series(
+    target: dict[str, dict[str, int]], source: dict[str, dict[str, int]]
+) -> None:
+    for name, values in source.items():
+        if name not in target:
+            target[name] = {}
+        target[name].update(values)
+
+
+def _count_all_dates(series: dict[str, dict[str, int]]) -> int:
+    return len({d for vals in series.values() for d in vals})
+
+
+def _extract_table_series(page: Page, visual: Locator) -> dict[str, dict[str, int]]:
+    line = visual.locator("path.line").first
+    box = line.bounding_box()
+    if not box:
+        raise RuntimeError("Could not get bounding box for line element")
+
+    page.mouse.click(
+        box["x"] + box["width"] / 2,
+        box["y"] + box["height"] / 2,
+        button="right",
     )
-    return build_rows(series_by_name=series_by_name)
+    page.wait_for_timeout(2_000)
+    page.get_by_role("menuitem", name="Show as a table").click()
+    page.wait_for_timeout(5_000)
+
+    rows = page.evaluate(
+        """() => {
+            const table = document.querySelector('[role="grid"], table');
+            if (!table) return [];
+            return [...table.querySelectorAll('tr, [role="row"]')].map(row => {
+                const cells = [...row.querySelectorAll(
+                    'th, td, [role="columnheader"], [role="rowheader"], [role="gridcell"]'
+                )];
+                return cells.map(c => c.textContent.trim());
+            });
+        }"""
+    )
+
+    if len(rows) < 3:
+        raise RuntimeError(f"Table too small ({len(rows)} rows)")
+
+    headers = rows[0]
+    series: dict[str, dict[str, int]] = {}
+    for col_idx in range(1, len(headers)):
+        series[headers[col_idx]] = {}
+
+    for row in rows[1:]:
+        date_str = row[0] if row[0] else ""
+        if not date_str or "/" not in date_str:
+            continue
+        for col_idx in range(1, min(len(headers), len(row))):
+            val = row[col_idx].strip()
+            if val:
+                series[headers[col_idx]][date_str] = int(val)
+
+    return series
+
+
+def scrape_barrages_to_israel() -> list[ScrapedRow]:
+    with sync_playwright() as playwright:
+        browser, page = open_dashboard(playwright)
+        try:
+            visual = locate_visual(
+                page, BARRAGE_VISUAL_TITLE, wait_selector="path.line"
+            )
+            series = _extract_table_series(page, visual)
+            return build_rows(series_by_name=series)
+        finally:
+            browser.close()
 
 
 def scrape_key_target_strikes_middle_east() -> list[TargetStrikeRow]:
@@ -678,6 +770,90 @@ def scrape_iran_satellite() -> Path:
     return output_path
 
 
+GIBS_FALLBACK_LAYER = "MODIS_Terra_CorrectedReflectance_TrueColor"
+
+
+def fetch_gibs_tile(
+    date: str, row: int, col: int, layer: str | None = None
+) -> tuple[int, int, bytes]:
+    layer = layer or GIBS_LAYER
+    url = (
+        f"https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/"
+        f"{layer}/default/{date}/{GIBS_TILE_MATRIX_SET}/"
+        f"{GIBS_ZOOM}/{row}/{col}.jpeg"
+    )
+    with urllib.request.urlopen(url, timeout=30) as resp:
+        return row, col, resp.read()
+
+
+def fetch_and_crop_gibs(date: str, layer: str | None = None) -> Image.Image:
+    layer = layer or GIBS_LAYER
+    tiles: dict[tuple[int, int], bytes] = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as pool:
+        futures = [
+            pool.submit(fetch_gibs_tile, date, r, c, layer)
+            for r in GIBS_ROW_RANGE
+            for c in GIBS_COL_RANGE
+        ]
+        for f in concurrent.futures.as_completed(futures):
+            row, col, data = f.result()
+            tiles[(row, col)] = data
+
+    n_cols = len(GIBS_COL_RANGE)
+    n_rows = len(GIBS_ROW_RANGE)
+    canvas = Image.new("RGB", (n_cols * GIBS_TILE_SIZE, n_rows * GIBS_TILE_SIZE))
+    for ri, row in enumerate(GIBS_ROW_RANGE):
+        for ci, col in enumerate(GIBS_COL_RANGE):
+            tile = Image.open(io.BytesIO(tiles[(row, col)]))
+            canvas.paste(tile, (ci * GIBS_TILE_SIZE, ri * GIBS_TILE_SIZE))
+
+    grid_west = min(GIBS_COL_RANGE) * GIBS_TILE_DEG - 180
+    grid_north = 90 - min(GIBS_ROW_RANGE) * GIBS_TILE_DEG
+    ppd = GIBS_TILE_SIZE / GIBS_TILE_DEG
+
+    crop_box = (
+        int((IRAN_WEST - grid_west) * ppd),
+        int((grid_north - IRAN_NORTH) * ppd),
+        int((IRAN_EAST - grid_west) * ppd),
+        int((grid_north - IRAN_SOUTH) * ppd),
+    )
+    return canvas.crop(crop_box)
+
+
+def download_gibs_image(date: str) -> Path:
+    import numpy as np
+
+    image = fetch_and_crop_gibs(date, GIBS_LAYER)
+    arr = np.array(image.convert("L"))
+    if float(np.mean(arr < 10)) > 0.5:
+        print(f"  VIIRS blank for {date}, falling back to MODIS Terra")
+        image = fetch_and_crop_gibs(date, GIBS_FALLBACK_LAYER)
+
+    GIBS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = GIBS_OUTPUT_DIR / f"iran_satellite_{date}.jpeg"
+    image.save(output_path, "JPEG", quality=90)
+    return output_path
+
+
+def backfill_gibs_from_csv() -> list[Path]:
+    csv_rows = load_csv_rows(BARRAGE_OUTPUT_PATH)
+    event_dates = sorted({row["event_date"] for row in csv_rows if row.get("event_date")})
+
+    saved: list[Path] = []
+    for date in event_dates:
+        target = GIBS_OUTPUT_DIR / f"iran_satellite_{date}.jpeg"
+        if target.exists():
+            continue
+        try:
+            path = download_gibs_image(date)
+            print(f"  NASA GIBS: saved {path}")
+            saved.append(path)
+        except Exception as exc:
+            print(f"  NASA GIBS: failed for {date}: {exc}")
+
+    return saved
+
+
 def main() -> None:
     barrage_rows = scrape_barrages_to_israel()
     target_rows = scrape_key_target_strikes_middle_east()
@@ -693,6 +869,17 @@ def main() -> None:
 
     satellite_path = scrape_iran_satellite()
 
+    today = barrage_rows[0].snapshot_date
+    today_gibs = GIBS_OUTPUT_DIR / f"iran_satellite_{today}.jpeg"
+    if not today_gibs.exists():
+        try:
+            download_gibs_image(today)
+            print(f"  NASA GIBS: saved {today_gibs}")
+        except Exception as exc:
+            print(f"  NASA GIBS: failed for today ({today}): {exc}")
+
+    backfilled = backfill_gibs_from_csv()
+
     summary = {
         "snapshot_date": barrage_rows[0].snapshot_date,
         "saved_barrage_snapshot_rows": len(barrage_rows),
@@ -702,6 +889,7 @@ def main() -> None:
         "key_targets_output_path": str(KEY_TARGETS_OUTPUT_PATH),
         "key_targets_graph_output_path": str(KEY_TARGETS_GRAPH_OUTPUT_PATH),
         "satellite_output_path": str(satellite_path),
+        "gibs_backfilled_count": len(backfilled),
         "latest_barrage_row": barrage_rows[-1].to_dict(),
         "latest_key_target_row": target_rows[0].to_dict(),
     }
