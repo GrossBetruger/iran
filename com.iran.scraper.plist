@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.iran.scraper</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/oren.koriat/.local/bin/uv</string>
+        <string>run</string>
+        <string>python</string>
+        <string>main.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/oren.koriat/lifespace/iran</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/oren.koriat/.local/bin:/Users/oren.koriat/.pyenv/shims:/Users/oren.koriat/.pyenv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>PYENV_VERSION</key>
+        <string>3.13.7</string>
+    </dict>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/oren.koriat/lifespace/iran/data/cron.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/oren.koriat/lifespace/iran/data/cron.log</string>
+</dict>
+</plist>
