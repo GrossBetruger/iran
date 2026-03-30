@@ -1,0 +1,72 @@
+{
+  "snapshot_date": "2026-03-30",
+  "saved_barrage_snapshot_rows": 23,
+  "saved_key_target_snapshot_rows": 12,
+  "barrage_output_path": "data/barrages_to_israel_daily.csv",
+  "barrage_graph_output_path": "data/barrages_to_israel_latest_snapshot.html",
+  "key_targets_output_path": "data/key_target_strikes_middle_east.csv",
+  "key_targets_graph_output_path": "data/key_target_strikes_middle_east_latest_snapshot.html",
+  "satellite_output_path": "data/satellite/iran_satellite_2026-03-30.jpeg",
+  "latest_barrage_row": {
+    "snapshot_date": "2026-03-30",
+    "event_date": "2026-03-22",
+    "iran_barrage_count": "8",
+    "lebanon_barrage_count": "85",
+    "yemen_barrage_count": "",
+    "total_barrage_count": "93",
+    "chart_title": "Waves of Attacks on Israel",
+    "metric_key": "barrages_to_israel",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-03-30T16:12:27+03:00",
+    "scraped_at_utc": "2026-03-30T13:12:27+00:00"
+  },
+  "latest_key_target_row": {
+    "snapshot_date": "2026-03-30",
+    "target_key": "ships_in_the_strait_of_hormuz",
+    "target_label": "Ships in the Strait of Hormuz",
+    "strike_count": "21",
+    "chart_title": "Key Targets Struck by Iran in the ME",
+    "metric_key": "key_target_strikes_middle_east",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-03-30T16:12:51+03:00",
+    "scraped_at_utc": "2026-03-30T13:12:51+00:00"
+  }
+}
+{
+  "snapshot_date": "2026-03-30",
+  "saved_barrage_snapshot_rows": 23,
+  "saved_key_target_snapshot_rows": 12,
+  "barrage_output_path": "data/barrages_to_israel_daily.csv",
+  "barrage_graph_output_path": "data/barrages_to_israel_latest_snapshot.html",
+  "key_targets_output_path": "data/key_target_strikes_middle_east.csv",
+  "key_targets_graph_output_path": "data/key_target_strikes_middle_east_latest_snapshot.html",
+  "satellite_output_path": "data/satellite/iran_satellite_2026-03-30.jpeg",
+  "latest_barrage_row": {
+    "snapshot_date": "2026-03-30",
+    "event_date": "2026-03-22",
+    "iran_barrage_count": "8",
+    "lebanon_barrage_count": "85",
+    "yemen_barrage_count": "",
+    "total_barrage_count": "93",
+    "chart_title": "Waves of Attacks on Israel",
+    "metric_key": "barrages_to_israel",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-03-30T16:20:28+03:00",
+    "scraped_at_utc": "2026-03-30T13:20:28+00:00"
+  },
+  "latest_key_target_row": {
+    "snapshot_date": "2026-03-30",
+    "target_key": "ships_in_the_strait_of_hormuz",
+    "target_label": "Ships in the Strait of Hormuz",
+    "strike_count": "21",
+    "chart_title": "Key Targets Struck by Iran in the ME",
+    "metric_key": "key_target_strikes_middle_east",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-03-30T16:20:52+03:00",
+    "scraped_at_utc": "2026-03-30T13:20:52+00:00"
+  }
+}
