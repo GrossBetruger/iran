@@ -854,6 +854,43 @@ def backfill_gibs_from_csv() -> list[Path]:
     return saved
 
 
+ALERTS_RAW_URL = (
+    "https://raw.githubusercontent.com/dleshem/israel-alerts-data/main/israel-alerts.csv"
+)
+ALERTS_RAW_PATH = Path("data/israel_alerts_raw.csv")
+BALLISTIC_ALERTS_PATH = Path("data/ballistic_alerts_daily.csv")
+BALLISTIC_ALERT_CATEGORY = "בדקות הקרובות צפויות להתקבל התרעות באזורך"
+
+
+def refresh_ballistic_alerts() -> Path:
+    print("  Downloading israel-alerts-data …")
+    req = urllib.request.Request(ALERTS_RAW_URL, headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        ALERTS_RAW_PATH.parent.mkdir(parents=True, exist_ok=True)
+        ALERTS_RAW_PATH.write_bytes(resp.read())
+
+    from collections import Counter
+
+    daily: Counter[str] = Counter()
+    with open(ALERTS_RAW_PATH, encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            date = row.get("alertDate", "")[:10]
+            if date < "2026-02-28":
+                continue
+            if row.get("category_desc", "").strip() == BALLISTIC_ALERT_CATEGORY:
+                daily[date] += 1
+
+    with open(BALLISTIC_ALERTS_PATH, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["date", "ballistic_alert_count"])
+        for d in sorted(daily):
+            writer.writerow([d, daily[d]])
+
+    total = sum(daily.values())
+    print(f"  Ballistic alerts: {len(daily)} days, {total} total alerts")
+    return BALLISTIC_ALERTS_PATH
+
+
 def main() -> None:
     barrage_rows = scrape_barrages_to_israel()
     target_rows = scrape_key_target_strikes_middle_east()
@@ -879,6 +916,11 @@ def main() -> None:
             print(f"  NASA GIBS: failed for today ({today}): {exc}")
 
     backfilled = backfill_gibs_from_csv()
+
+    try:
+        refresh_ballistic_alerts()
+    except Exception as exc:
+        print(f"  Ballistic alerts refresh failed: {exc}")
 
     summary = {
         "snapshot_date": barrage_rows[0].snapshot_date,

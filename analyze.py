@@ -4,6 +4,7 @@ import base64
 import csv
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -259,17 +260,24 @@ def build_gallery(
     source_data: list[tuple[MissileSource, dict[str, int]]],
     out_dir: Path,
 ) -> None:
+    now_utc = datetime.now(timezone.utc)
+    today_str = now_utc.strftime("%Y-%m-%d")
+    hours_elapsed = now_utc.hour + now_utc.minute / 60
+
     all_entries: list[dict] = []
     for image_path in sorted(NASA_SATELLITE_DIR.glob("iran_satellite_*.jpeg")):
         date = image_path.stem.replace("iran_satellite_", "")
         pct = compute_cloud_pct(image_path, mask_arr)
         with open(image_path, "rb") as img_f:
             b64 = base64.b64encode(img_f.read()).decode()
+        is_partial = date == today_str
         entry = {
             "date": date,
             "cloud_pct": f"{pct:.1f}" if pct is not None else "N/A",
             "category": classify_cloud(pct) if pct is not None else "no_data",
             "b64": b64,
+            "partial": is_partial,
+            "hours_elapsed": f"{hours_elapsed:.0f}" if is_partial else None,
         }
         for src, by_date in source_data:
             val = by_date.get(date)
@@ -296,6 +304,7 @@ def build_gallery(
         ".partly_cloudy{background:#f9a825;color:#000}",
         ".cloudy{background:#1565c0;color:#fff}",
         ".no_data{background:#555;color:#ccc}",
+        ".partial{background:#e65100;color:#fff}",
         "h1{margin-bottom:20px}",
         "</style></head><body>",
         "<h1>Iran Satellite Cloud Gallery</h1>",
@@ -306,13 +315,19 @@ def build_gallery(
             f"<span>{src.name}: {e[src.slug]}</span>"
             for src, _ in source_data
         )
+        partial_badge = (
+            f" <span class='tag partial'>PARTIAL — {e['hours_elapsed']}h of 24h</span>"
+            if e["partial"]
+            else ""
+        )
         html_parts.append(
             f"<div class='card'>"
             f"<img src='data:image/jpeg;base64,{e['b64']}' alt='{e['date']}'>"
             f"<div class='info'>"
             f"<span><b>{e['date']}</b></span>"
             f"<span class='tag {e['category']}'>{e['category'].replace('_',' ')}</span>"
-            f"<span>Cloud: {e['cloud_pct']}%</span><br>"
+            f"<span>Cloud: {e['cloud_pct']}%</span>"
+            f"{partial_badge}<br>"
             f"{source_lines}"
             f"</div></div>"
         )

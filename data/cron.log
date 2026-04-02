@@ -70,3 +70,132 @@
     "scraped_at_utc": "2026-03-30T13:20:52+00:00"
   }
 }
+Traceback (most recent call last):
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 900, in <module>
+    main()
+    ~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 858, in main
+    barrage_rows = scrape_barrages_to_israel()
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 694, in scrape_barrages_to_israel
+    series = _extract_table_series(page, visual)
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 651, in _extract_table_series
+    page.get_by_role("menuitem", name="Show as a table").click()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py", line 15631, in click
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.click(
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        )
+        ^
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py", line 162, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py", line 566, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("menuitem", name="Show as a table")
+
+Traceback (most recent call last):
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 900, in <module>
+    main()
+    ~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 858, in main
+    barrage_rows = scrape_barrages_to_israel()
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 689, in scrape_barrages_to_israel
+    browser, page = open_dashboard(playwright)
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 148, in open_dashboard
+    browser = playwright.chromium.launch(
+        headless=True,
+        executable_path=detect_browser_executable(),
+    )
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py", line 14566, in launch
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.launch(
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<16 lines>...
+        )
+        ^
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_browser_type.py", line 97, in launch
+    await self._channel.send(
+        "launch", TimeoutSettings.launch_timeout, params
+    )
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: BrowserType.launch: Timeout 180000ms exceeded.
+Call log:
+  - <launching> /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/var/folders/9l/v31qyw5n62918h2vss4dp9_r0000gp/T/playwright_chromiumdev_profile-39LEGM --remote-debugging-pipe --no-startup-window
+  - <launched> pid=36532
+
+Traceback (most recent call last):
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 942, in <module>
+    main()
+    ~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 895, in main
+    barrage_rows = scrape_barrages_to_israel()
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 689, in scrape_barrages_to_israel
+    browser, page = open_dashboard(playwright)
+                    ~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 148, in open_dashboard
+    browser = playwright.chromium.launch(
+        headless=True,
+        executable_path=detect_browser_executable(),
+    )
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py", line 14566, in launch
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.launch(
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<16 lines>...
+        )
+        ^
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_browser_type.py", line 97, in launch
+    await self._channel.send(
+        "launch", TimeoutSettings.launch_timeout, params
+    )
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: BrowserType.launch: Timeout 180000ms exceeded.
+Call log:
+  - <launching> /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/var/folders/9l/v31qyw5n62918h2vss4dp9_r0000gp/T/playwright_chromiumdev_profile-3cEq52 --remote-debugging-pipe --no-startup-window
+  - <launched> pid=49119
+
