@@ -4,10 +4,9 @@ import concurrent.futures
 import csv
 import io
 import json
-import math
 import urllib.request
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 
@@ -30,14 +29,8 @@ KEY_TARGETS_METRIC_KEY = "key_target_strikes_middle_east"
 KEY_TARGETS_OUTPUT_PATH = Path("data/key_target_strikes_middle_east.csv")
 KEY_TARGETS_GRAPH_OUTPUT_PATH = Path("data/key_target_strikes_middle_east_latest_snapshot.html")
 
-SATELLITE_API_BASE = "https://api.accuweather.com/maps/v1/satellite/globalColor/zxy"
-SATELLITE_API_KEY = "REDACTED_ACCUWEATHER_KEY"
-SATELLITE_ZOOM = 6
-SATELLITE_TILE_SIZE = 256
 IRAN_NORTH, IRAN_SOUTH = 39.8, 25.0
 IRAN_WEST, IRAN_EAST = 44.0, 63.5
-SATELLITE_SOURCE_URL = "https://www.accuweather.com/en/ir/national/satellite"
-SATELLITE_OUTPUT_DIR = Path("data/satellite")
 
 GIBS_LAYER = "VIIRS_SNPP_CorrectedReflectance_TrueColor"
 GIBS_TILE_MATRIX_SET = "250m"
@@ -706,70 +699,6 @@ def scrape_key_target_strikes_middle_east() -> list[TargetStrikeRow]:
     return build_target_rows(category_values=category_values)
 
 
-def get_latest_satellite_timestamp() -> str:
-    now_utc = datetime.now(UTC)
-    rounded = now_utc.replace(minute=now_utc.minute // 10 * 10, second=0, microsecond=0)
-    rounded -= timedelta(minutes=20)
-    return rounded.strftime("%Y-%m-%dT%H:%M:00Z")
-
-
-def lat_lon_to_tile_float(lat: float, lon: float, zoom: int) -> tuple[float, float]:
-    n = 2 ** zoom
-    x = (lon + 180) / 360 * n
-    lat_rad = math.radians(lat)
-    y = (1 - math.log(math.tan(lat_rad) + 1 / math.cos(lat_rad)) / math.pi) / 2 * n
-    return x, y
-
-
-def fetch_satellite_tile(timestamp: str, zoom: int, x: int, y: int) -> Image.Image:
-    url = (
-        f"{SATELLITE_API_BASE}/{timestamp}/{zoom}/{x}/{y}.jpeg"
-        f"?apikey={SATELLITE_API_KEY}"
-    )
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return Image.open(io.BytesIO(resp.read()))
-
-
-def fetch_and_crop_satellite(timestamp: str) -> Image.Image:
-    tl_x, tl_y = lat_lon_to_tile_float(IRAN_NORTH, IRAN_WEST, SATELLITE_ZOOM)
-    br_x, br_y = lat_lon_to_tile_float(IRAN_SOUTH, IRAN_EAST, SATELLITE_ZOOM)
-
-    tile_x_min, tile_x_max = int(tl_x), int(br_x)
-    tile_y_min, tile_y_max = int(tl_y), int(br_y)
-    cols = tile_x_max - tile_x_min + 1
-    rows = tile_y_max - tile_y_min + 1
-
-    stitched = Image.new("RGB", (cols * SATELLITE_TILE_SIZE, rows * SATELLITE_TILE_SIZE))
-    for ty in range(tile_y_min, tile_y_max + 1):
-        for tx in range(tile_x_min, tile_x_max + 1):
-            tile = fetch_satellite_tile(timestamp, SATELLITE_ZOOM, tx, ty)
-            stitched.paste(tile, (
-                (tx - tile_x_min) * SATELLITE_TILE_SIZE,
-                (ty - tile_y_min) * SATELLITE_TILE_SIZE,
-            ))
-
-    crop_box = (
-        int((tl_x - tile_x_min) * SATELLITE_TILE_SIZE),
-        int((tl_y - tile_y_min) * SATELLITE_TILE_SIZE),
-        int((br_x - tile_x_min) * SATELLITE_TILE_SIZE),
-        int((br_y - tile_y_min) * SATELLITE_TILE_SIZE),
-    )
-    return stitched.crop(crop_box)
-
-
-def scrape_iran_satellite() -> Path:
-    sat_timestamp = get_latest_satellite_timestamp()
-    image = fetch_and_crop_satellite(sat_timestamp)
-    SATELLITE_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-    snapshot_date = get_scraped_now_local().date().isoformat()
-    filename = f"iran_satellite_{snapshot_date}.jpeg"
-    output_path = SATELLITE_OUTPUT_DIR / filename
-    image.save(output_path, "JPEG", quality=90)
-    return output_path
-
-
 GIBS_FALLBACK_LAYER = "MODIS_Terra_CorrectedReflectance_TrueColor"
 
 
@@ -904,8 +833,6 @@ def main() -> None:
     upsert_target_rows(KEY_TARGETS_OUTPUT_PATH, target_rows)
     write_latest_target_graph(KEY_TARGETS_OUTPUT_PATH, KEY_TARGETS_GRAPH_OUTPUT_PATH)
 
-    satellite_path = scrape_iran_satellite()
-
     today = barrage_rows[0].snapshot_date
     today_gibs = GIBS_OUTPUT_DIR / f"iran_satellite_{today}.jpeg"
     if not today_gibs.exists():
@@ -930,7 +857,6 @@ def main() -> None:
         "barrage_graph_output_path": str(BARRAGE_GRAPH_OUTPUT_PATH),
         "key_targets_output_path": str(KEY_TARGETS_OUTPUT_PATH),
         "key_targets_graph_output_path": str(KEY_TARGETS_GRAPH_OUTPUT_PATH),
-        "satellite_output_path": str(satellite_path),
         "gibs_backfilled_count": len(backfilled),
         "latest_barrage_row": barrage_rows[-1].to_dict(),
         "latest_key_target_row": target_rows[0].to_dict(),
