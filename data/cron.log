@@ -199,3 +199,85 @@ Call log:
   - <launching> /Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --user-data-dir=/var/folders/9l/v31qyw5n62918h2vss4dp9_r0000gp/T/playwright_chromiumdev_profile-3cEq52 --remote-debugging-pipe --no-startup-window
   - <launched> pid=49119
 
+Traceback (most recent call last):
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 942, in <module>
+    main()
+    ~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 895, in main
+    barrage_rows = scrape_barrages_to_israel()
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 694, in scrape_barrages_to_israel
+    series = _extract_table_series(page, visual)
+  File "/Users/oren.koriat/lifespace/iran/main.py", line 651, in _extract_table_series
+    page.get_by_role("menuitem", name="Show as a table").click()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/sync_api/_generated.py", line 15631, in click
+    self._sync(
+    ~~~~~~~~~~^
+        self._impl_obj.click(
+        ^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        )
+        ^
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ~~~~~~~~~~~^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_locator.py", line 162, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_frame.py", line 566, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 69, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/Users/oren.koriat/lifespace/iran/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py", line 559, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("menuitem", name="Show as a table")
+
+  VIIRS blank for 2026-04-05, falling back to MODIS Terra
+  NASA GIBS: saved data/satellite/nasa/iran_satellite_2026-04-05.jpeg
+  Downloading israel-alerts-data …
+  Ballistic alerts: 37 days, 157610 total alerts
+{
+  "snapshot_date": "2026-04-05",
+  "saved_barrage_snapshot_rows": 31,
+  "saved_key_target_snapshot_rows": 12,
+  "barrage_output_path": "data/barrages_to_israel_daily.csv",
+  "barrage_graph_output_path": "data/barrages_to_israel_latest_snapshot.html",
+  "key_targets_output_path": "data/key_target_strikes_middle_east.csv",
+  "key_targets_graph_output_path": "data/key_target_strikes_middle_east_latest_snapshot.html",
+  "satellite_output_path": "data/satellite/iran_satellite_2026-04-05.jpeg",
+  "gibs_backfilled_count": 0,
+  "latest_barrage_row": {
+    "snapshot_date": "2026-04-05",
+    "event_date": "2026-03-30",
+    "iran_barrage_count": "9",
+    "lebanon_barrage_count": "22",
+    "yemen_barrage_count": "2",
+    "total_barrage_count": "33",
+    "chart_title": "Waves of Attacks on Israel",
+    "metric_key": "barrages_to_israel",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-04-05T09:42:31+03:00",
+    "scraped_at_utc": "2026-04-05T06:42:31+00:00"
+  },
+  "latest_key_target_row": {
+    "snapshot_date": "2026-04-05",
+    "target_key": "ships_in_the_strait_of_hormuz",
+    "target_label": "Ships in the Strait of Hormuz",
+    "strike_count": "24",
+    "chart_title": "Key Targets Struck by Iran in the ME",
+    "metric_key": "key_target_strikes_middle_east",
+    "source_page_url": "https://www.inss.org.il/publication/lions-roar-data/",
+    "dashboard_url": "https://app.powerbi.com/view?r=eyJrIjoiYmI3MzIzMTAtMTdjNC00NTY1LWFiM2YtNjI0NTk5MWEyYTI5IiwidCI6IjgwOGNmNGIzLTFhOTYtNDEzZi1iMDZiLTlkZTZjOThmNTQ2OSJ9",
+    "scraped_at_local": "2026-04-05T09:42:55+03:00",
+    "scraped_at_utc": "2026-04-05T06:42:55+00:00"
+  }
+}

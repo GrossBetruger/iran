@@ -182,6 +182,26 @@ def run_analysis(
     perm_p = count_extreme / N_PERMUTATIONS
     print(f"  Permutation test p={perm_p:.4f} ({N_PERMUTATIONS} permutations)\n")
 
+    # --- Windowed analysis ---
+    WINDOWS = [10, 12, 15]
+    print(f"  {'Window':<20} {'n':>3}  {'Spearman r':>11}  {'p':>8}  {'Perm p':>8}")
+    print(f"  {'All days':<20} {n:>3}  {spearman_r:>11.3f}  {spearman_p:>8.4f}  {perm_p:>8.4f}")
+    for w in WINDOWS:
+        if n < w:
+            continue
+        w_cloud = cloud_arr[-w:]
+        w_missile = missile_arr[-w:]
+        w_sr, w_sp = stats.spearmanr(w_cloud, w_missile)
+        w_rng = np.random.default_rng(42)
+        w_perm = sum(
+            1
+            for _ in range(N_PERMUTATIONS)
+            if abs(stats.spearmanr(w_cloud, w_rng.permutation(w_missile))[0])
+            >= abs(w_sr)
+        ) / N_PERMUTATIONS
+        print(f"  {'Last ' + str(w) + ' days':<20} {w:>3}  {w_sr:>11.3f}  {w_sp:>8.4f}  {w_perm:>8.4f}")
+    print()
+
     # --- Scatter plot ---
     scatter_fig = go.Figure()
     scatter_fig.add_trace(go.Scatter(
