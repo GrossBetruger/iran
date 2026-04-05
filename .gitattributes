@@ -1,0 +1,4 @@
+data/israel_alerts_raw.csv filter=lfs diff=lfs merge=lfs -text
+data/analysis/cloud_gallery.html filter=lfs diff=lfs merge=lfs -text
+data/satellite/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+data/satellite/*.jpeg filter=lfs diff=lfs merge=lfs -text
